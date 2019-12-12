@@ -7,7 +7,11 @@ import net.andreinc.mockneat.MockNeat;
 import java.time.Instant;
 import java.util.ArrayList;
 
-// This bean is required by the gson library to produce JSON output
+
+/**
+ * Basic bean for POS scan record.
+ * Used by the JSON and CSV libraries to generate output
+ */
 public class POS_Scan {
 
     @CsvBindByName(column="store_id")
@@ -58,6 +62,10 @@ public class POS_Scan {
         this.unitQty = unitQty;
     }
 
+    /**
+     * Creates a new scan record with data
+     * @param items an array of UPC codes to choose from
+     */
     POS_Scan(ArrayList<String> items) {
         // I anticipate more uses for this mocking library
         MockNeat mock = MockNeat.threadLocal();

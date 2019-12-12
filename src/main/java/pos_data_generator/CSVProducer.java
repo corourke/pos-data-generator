@@ -26,14 +26,21 @@ import java.util.concurrent.CountDownLatch;
  * TODO: make generic by passing in a data producer function and an output function
  */
 public class CSVProducer implements Runnable {
+
     private CountDownLatch latch;
+    private String outputPath;
     private Logger logger = LoggerFactory.getLogger(CSVProducer.class.getName());
     private ArrayList<String> items = new ArrayList<>(32000);
     private ControllerMBean controller;
 
-
-    CSVProducer(CountDownLatch latch) {
+    /**
+     * Generates POS scan records
+     * @param latch Signals the caller that the producer has shutdown
+     * @param path Directory to place data files
+     */
+    CSVProducer(CountDownLatch latch, String path) {
         this.latch = latch;
+        this.outputPath = path;
 
         // Read in the UPC codes from the item_master file
         load_csv(logger, items);
@@ -51,13 +58,15 @@ public class CSVProducer implements Runnable {
 
 
     public void run() {
+        final int MAX_DATA_ROWS = 300000;
+        final int MAX_DATA_COLLECT_TIME = 600000; // 10 minutes
+
         Gson gson = new Gson();
         long lastTimestamp;
         long lastFileTimestamp;
         long rowCount;
         long priorRowCount;
         List<POS_Scan> recordList;
-        String fileName;
 
         try {
             lastTimestamp = Instant.now().toEpochMilli();
@@ -84,10 +93,11 @@ public class CSVProducer implements Runnable {
                     POS_Scan pos_scan = new POS_Scan(items);
 
                     // Creates a JSON representation
-                    String value = gson.toJson(pos_scan);
-                    logger.info("Record: " + value);
+                    // String value = gson.toJson(pos_scan);
+                    // logger.info("Record: " + value);
 
                     // Add to array of records
+                    // TODO: Write to file as we go so that we don't use so much memory
                     recordList.add(pos_scan);
                     rowCount++;
 
@@ -101,17 +111,20 @@ public class CSVProducer implements Runnable {
                         priorRowCount = rowCount;
                     }
                     // If we have a lot of rows or haven't output a file in a while, create file
-                    if (recordList.size() >= 25000 || (timestamp - lastFileTimestamp) >= 60000 ) {
-                        // Figure out the file name
-                        fileName = "scans_" + timestamp;
-                        File file = new File(fileName + ".tmp");
+                    if (recordList.size() >= MAX_DATA_ROWS || (timestamp - lastFileTimestamp) >= MAX_DATA_COLLECT_TIME ) {
+                        // Figure out the temporary file name
+                        String fileName = "scans_" + timestamp;
+                        File file = new File(outputPath, fileName + ".tmp");
                         // Open the file and write the rows
                         Writer writer = new FileWriter(file.toString());
-                        StatefulBeanToCsv beanToCsv = new StatefulBeanToCsvBuilder(writer).build();
+                        StatefulBeanToCsv beanToCsv = new StatefulBeanToCsvBuilder(writer)
+                                .withApplyQuotesToAll(false)
+                                .withOrderedResults(true)
+                                .build();
                         beanToCsv.write(recordList);
                         writer.close();
                         // Rename .tmp to .csv now that file is written and log it
-                        file.renameTo(new File(fileName + ".csv"));
+                        file.renameTo(new File(outputPath, fileName + ".csv"));
                         logger.info("Wrote: " + recordList.size() + " rows to: " + file.toString());
 
                         lastFileTimestamp = timestamp;
@@ -122,7 +135,7 @@ public class CSVProducer implements Runnable {
         } catch (Exception e) {
             logger.error("Exception in Producer thread: " + e);
         } finally {
-            // TODO: Flush and close output
+            // TODO: Flush and close output if needed
             latch.countDown();
         }
     }
@@ -135,7 +148,7 @@ public class CSVProducer implements Runnable {
     private static void load_csv(Logger logger, AbstractList list) {
         try {
             // TODO: Take output file from command line
-            Reader reader = new FileReader("./src/main/resources/seed-data/item_master.csv");
+            Reader reader = new FileReader("./seed-data/item_master.csv");
             CSVReaderHeaderAware csvReader = new CSVReaderHeaderAware(reader);
 
             // Read in each category from the CSV file

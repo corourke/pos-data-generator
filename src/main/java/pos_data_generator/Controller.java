@@ -16,8 +16,7 @@ public class Controller extends NotificationBroadcasterSupport implements Contro
 
     // Thread safe state variables
     private AtomicInteger state = new AtomicInteger(1);
-    private AtomicInteger rate = new AtomicInteger(1);
-    private AtomicInteger tps = new AtomicInteger(0);
+    private AtomicInteger rate = new AtomicInteger(100);
     private long sequenceNumber;
     private Logger logger = LoggerFactory.getLogger(CSVProducer.class);
 
@@ -40,7 +39,7 @@ public class Controller extends NotificationBroadcasterSupport implements Contro
                 oldRate, rate.get());
 
         sendNotification(n);
-        logger.info("Rate changed");
+        logger.info("TRX Rate changed");
     }
 
     /**
@@ -61,19 +60,7 @@ public class Controller extends NotificationBroadcasterSupport implements Contro
                 oldState, state.get());
 
         sendNotification(n);
-        logger.info("State changed");
-    }
-
-    public void setTps(int newTps) {
-        int oldTps = tps.get();
-        tps.set(newTps);
-
-        Notification n = new AttributeChangeNotification(this,
-                sequenceNumber++, System.currentTimeMillis(),
-                "TPS Changed", "TPS", "int",
-                oldTps, tps.get());
-
-        sendNotification(n);
+        logger.info("Run state changed");
     }
 
     @Override
@@ -85,9 +72,6 @@ public class Controller extends NotificationBroadcasterSupport implements Contro
     public int getState() {
         return state.get();
     }
-
-    @Override
-    public int getTps() { return tps.get(); }
 
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {

@@ -13,8 +13,4 @@ public interface ControllerMBean {
 
     public void setState(int newState);
 
-    public int getTps();
-
-    public void setTps(int newTps);
-
 }
