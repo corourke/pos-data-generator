@@ -2,10 +2,10 @@
 
 Real-time demo data generator for point-of-sale data. 
 
-data-generator -- Generates CSV data files
-file_uploader_s3 -- Uploads files to AWS S3
+* `data-generator.jar` -- Generates CSV data files
+* `file_uploader_s3.sh` -- Uploads files to AWS S3
 
-Walkthrough:
+Walkthrough video:
 https://www.dropbox.com/s/zsjykewz5lvsl4h/DataGenerator_01.mp4?dl=0
 
 There is a shell script that uploads the CSV files to S3,

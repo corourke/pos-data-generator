@@ -2,7 +2,7 @@
 
 
 # Prechecks
-: "${DATA_DIR:=/tmp/pos_data}"
+: "${DATA_DIR:=./output}"
 : "${PREFIX:=scans}"
 : "${S3_LOCATION=s3://incorta-datalake}"
 

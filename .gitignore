@@ -19,3 +19,4 @@ scan_data/
 target/
 volumes/
 node_modules/
+/datalake-csv-generator-1.0.zip
