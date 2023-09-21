@@ -59,4 +59,5 @@ Other requirements:
   * The affect of advertising, word-of-mouth, in-store promotions, etc.
   * The affect of regional and in-store stockouts.
 
-  
+
+![table_relationships.drawio](./table_relationships.drawio.png)
